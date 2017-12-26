@@ -2,15 +2,15 @@
 <div class="header">
     <div class="logo">网上租房后台管理</div>
     <div class="user-info">
-        <el-dropdown trigger="click" @command="handleCommand">
+        <!-- <el-dropdown trigger="click" @command="handleCommand">
             <span class="el-dropdown-link" @click="showLoginDia($event)">
                     {{username}}
                 </span>
             <span class="el-dropdown-link" @click="showRegisterDia()">
                     {{regist}}
                 </span>
-        </el-dropdown>
-        <div id="register">
+        </el-dropdown> -->
+        <!-- <div id="register">
             <el-dialog title="用户注册" :visible.sync="register" size="tiny">
                 <el-form>
                     <el-form-item label="用户邮箱" :label-width="formLabelWidth">
@@ -44,7 +44,7 @@
                     <el-button type="primary" @click="loginTo()" :loading="loginLoad">登 录</el-button>
                 </div>
             </el-dialog>
-        </div>
+        </div> -->
     </div>
 </div>
 </template>

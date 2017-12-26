@@ -26,7 +26,7 @@
             </el-table-column>
         </el-table> -->
 
-                  <el-table
+            <el-table
             :data="order"
             style="width: 100%">
             <el-table-column
@@ -54,7 +54,7 @@
             </el-table-column>
             <el-table-column
               label="订单状态"
-              width="180">
+              width="100">
               <template slot-scope="scope">
                   <div slot="reference" class="name-wrapper">
                       <el-tag type="success" size="medium" v-if="scope.row.order_complete">已完成</el-tag>
@@ -74,6 +74,26 @@
             </template>
             </el-table-column>
         </el-table>
+
+          <el-dialog title="编辑订单" :visible.sync="editDia">
+            <el-form >
+            <el-form-item label="创建时间" :label-width="formLabelWidth">
+                <el-input v-model="ctime" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="房屋价格" :label-width="formLabelWidth">
+                <el-input v-model="price" auto-complete="off" type="number"></el-input>
+            </el-form-item>
+            <el-form-item label="是否完成" :label-width="formLabelWidth">
+                <el-switch
+                v-model="complete">
+                </el-switch>
+            </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+            <el-button @click="editDia = false">取 消</el-button>
+            <el-button type="primary" @click="toUpdate()">确 定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -82,16 +102,14 @@
         data() {
             return {
                 api: 'http://localhost:8888/api',
-                tableData: [],
-                cur_page: 1,
-                multipleSelection: [],
-                select_cate: '',
-                select_area: '',  //选择东西区
-                select_floor: '东区1号楼',  //选择楼号
-                select_word: '',
-                del_list: [],
-                is_search: false,
-                order: ''
+                order: '',
+                ctime: '',
+                price: 0,
+                complete: false,
+                editDia: false,
+                order_id: '',
+                formLabelWidth: '300'
+
             }
         },
         created(){
@@ -142,10 +160,57 @@
                 return row.tag === value;
             },
             handleEdit(index, row) {
-                this.$message('编辑第'+(index+1)+'行');
+                this.price = row.house_price;
+                this.ctime = row.creat_time;
+                this.complete = row.order_complete;
+                this.order_id = row.order_id;
+                this.editDia = true;
             },
             handleDelete(index, row) {
-                this.$message.error('删除第'+(index+1)+'行');
+            console.log(index, row.order_id);
+
+            var qs = require('qs');
+                this.$axios.post(this.api + '/deleteOrder', qs.stringify({
+                order_id: row.order_id
+                }), {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => {
+                console.log(response);
+                if (response.data.code == 200) {
+                    this.showSuccessMsg('取消订单成功');
+                    // row.order_complete.$set(true);
+                    // this.$set(this.order, index, true)
+                } else {
+                    this.showErrorMsg(response.data.msg);
+                }
+                this.getData();
+                })
+            },
+            toUpdate() {
+                var qs = require('qs');
+                this.$axios.post(this.api + '/updateOrder', qs.stringify({
+                order_id: this.order_id,
+                order_complete: this.complete,
+                house_price: this.price,
+                creat_time: this.ctime
+                }), {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => {
+                console.log(response);
+                if (response.data.code == 200) {
+                    this.showSuccessMsg('修改订单成功');
+                    // row.order_complete.$set(true);
+                    // this.$set(this.order, index, true)
+                } else {
+                    this.showErrorMsg(response.data.msg);
+                }
+                this.getData();
+                })
+                this.editDia = false;
             },
             delAll(){
                 const self = this,
@@ -160,6 +225,27 @@
             },
             handleSelectionChange(val) {
                 this.multipleSelection = val;
+            },
+            showErrorMsg(msg) {
+                this.$notify.error({
+                title: '错误',
+                message: msg
+                });
+            },
+            showSuccessMsg(msg) {
+                this.$notify({
+                title: '成功',
+                message: msg,
+                position: 'bottom-right',
+                type: 'success'
+                });
+            },
+            showWarnMsg(msg) {
+                this.$notify({
+                title: '警告',
+                message: msg,
+                type: 'warning'
+                });
             }
         }
     }
